@@ -1,3 +1,5 @@
 node_modules
 dist
-docs/
+docs/context.md
+docs/development-plan.md
+docs/website/dev-plan-we.md
