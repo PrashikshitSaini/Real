@@ -1,0 +1,32 @@
+{
+    "name": "minimalist-journal",
+    "version": "1.0.0",
+    "description": "A minimalist journal app for distraction-free writing",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "dev": "concurrently \"npm run start\" \"cd src && npm start\"",
+        "build": "cd src && npm run build",
+        "package": "electron-builder"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "concurrently": "^8.2.2",
+        "electron": "^29.1.0",
+        "electron-builder": "^24.13.3"
+    },
+    "build": {
+        "appId": "com.real.journal",
+        "productName": "REAL",
+        "files": [
+            "main.js",
+            "src/build/**/*",
+            "package.json"
+        ],
+        "win": {
+            "target": "nsis",
+            "icon": "src/public/realLogo.ico"
+        }
+    }
+}
