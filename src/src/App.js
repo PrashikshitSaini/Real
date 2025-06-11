@@ -140,7 +140,7 @@ function App() {
       if (typingTimerRef.current) clearInterval(typingTimerRef.current);
       typingTimerRef.current = null;
     };
-  }, [content]);
+  }, [content, entryColor]);
 
   // Autosave effect: save typing time in metadata
   useEffect(() => {
@@ -157,7 +157,7 @@ function App() {
       });
     }, 1000);
     return () => clearTimeout(timeout);
-  }, [content, font, entryColor, entryTypingSeconds, currentEntry, ipcRenderer]);
+  }, [content, font, entryColor, entryTypingSeconds, currentEntry]);
 
   const handleFontChange = (fontName) => {
     if (fontName === 'Random') {
