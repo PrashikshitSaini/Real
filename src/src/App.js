@@ -65,8 +65,6 @@ function App() {
   const [currentEntry, setCurrentEntry] = useState(null);
   const editorRef = useRef(null);
   const [showTimerDropdown, setShowTimerDropdown] = useState(false);
-  const [showTime, setShowTime] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [showEntryPanel, setShowEntryPanel] = useState(false);
   const justLoadedEntryRef = useRef(false);
   const [randomFontName, setRandomFontName] = useState('');
@@ -150,7 +148,7 @@ function App() {
     if (justLoadedEntryRef.current) return;
     if (content === '' && !currentEntry) return;
     const timeout = setTimeout(() => {
-      const metadata = { font, color: 'Black', typingSeconds: entryTypingSeconds };
+      const metadata = { font, color: entryColor, typingSeconds: entryTypingSeconds };
       ipcRenderer.invoke('save-entry', { content, metadata, filename: currentEntry }).then((res) => {
         if (res && res.filename) {
           setCurrentEntry(res.filename);
@@ -159,14 +157,7 @@ function App() {
       });
     }, 1000);
     return () => clearTimeout(timeout);
-  }, [content, font, entryTypingSeconds]);
-
-  useEffect(() => {
-    if (showTime) {
-      const interval = setInterval(() => setCurrentTime(new Date()), 1000);
-      return () => clearInterval(interval);
-    }
-  }, [showTime]);
+  }, [content, font, entryColor, entryTypingSeconds, currentEntry, ipcRenderer]);
 
   const handleFontChange = (fontName) => {
     if (fontName === 'Random') {
@@ -182,11 +173,6 @@ function App() {
 
   const handleFontSizeChange = (delta) => {
     setFontSize((size) => Math.max(12, Math.min(48, size + delta)));
-  };
-
-  const openEntry = (entry) => {
-    setContent(entry.content.replace(/^[\s\S]*?---\s*/, ''));
-    setCurrentEntry(entry.filename);
   };
 
   const playBeep = () => {
