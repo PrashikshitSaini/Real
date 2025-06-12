@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REAL - A Minimalist Journal App</title>
     <meta name="description" content="A distraction-free journal app for quiet minds. Write like no one's watching.">
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="realLogo.svg">
     <!-- Open Graph tags for social sharing -->
     <meta property="og:title" content="REAL - A Minimalist Journal App">
     <meta property="og:description" content="A distraction-free journal app for quiet minds. Write like no one's watching.">
@@ -25,15 +27,17 @@
         }
     </style>
 </head>
-<body class="bg-white text-gray-900">
+<body class="bg-[#f7f7f7] text-gray-900">
     <!-- Header -->
-    <header class="fixed w-full bg-white/80 backdrop-blur-sm border-b border-gray-100">
+    <header class="fixed w-full bg-[#f7f7f7] backdrop-blur-sm border-b border-gray-200 shadow-sm z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <h1 class="text-xl font-semibold">REAL</h1>
+            <div class="flex justify-between items-center h-20">
+                <a href="/" class="flex items-center">
+                  <img src="realLogo.svg" alt="REAL Logo" class="h-16 w-16 p-2 bg-white border border-gray-200 shadow rounded-xl" />
+                </a>
                 <a href="https://github.com/PrashikshitSaini/Real" 
                    target="_blank" 
-                   class="text-gray-600 hover:text-gray-900 transition-colors">
+                   class="text-gray-600 hover:text-gray-900 transition-colors text-lg font-medium">
                     GitHub ↗
                 </a>
             </div>
@@ -187,10 +191,12 @@
     </section>
 
     <!-- Footer -->
-    <footer class="py-8 px-4 border-t border-gray-100">
-        <div class="max-w-4xl mx-auto text-center text-gray-600">
-            <p>© 2024 REAL Journal. All rights reserved.</p>
-        </div>
+    <footer class="py-8 px-4 border-t border-gray-200 text-center text-gray-500 text-sm bg-[#f7f7f7]">
+      <span>
+        Open source on
+        <a href="https://github.com/PrashikshitSaini/Real" target="_blank" class="text-blue-600 hover:underline font-medium">GitHub</a>
+        · MIT License
+      </span>
     </footer>
     <script>
       document.querySelectorAll('.hash-btn').forEach(btn => {
