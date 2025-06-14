@@ -29,6 +29,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install create-dmg (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install create-dmg
+
       - name: Build React app
         run: cd src && npm install && npm run build && cd ..
 
@@ -41,9 +46,9 @@ jobs:
         run: |
           npm run package
           # Ad-hoc sign the app
-          codesign --force --deep --sign - "dist/mac/REAL.app"
+          codesign --force --deep --sign - "dist/mac-arm64/REAL.app"
           # Create DMG
-          create-dmg "dist/mac/REAL.app" dist/
+          create-dmg "dist/mac-arm64/REAL.app" dist/
 
       - name: Upload dist folder
         uses: actions/upload-artifact@v4
