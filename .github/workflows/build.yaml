@@ -29,11 +29,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install create-dmg (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          brew install create-dmg
-
       - name: Build React app
         run: cd src && npm install && npm run build && cd ..
 
@@ -47,18 +42,6 @@ jobs:
           npm run package
           # Ad-hoc sign the app
           codesign --force --deep --sign - "dist/mac-arm64/REAL.app"
-          # Create DMG with proper output filename
-          create-dmg \
-            --volname "REAL" \
-            --volicon "src/public/realLogo.icns" \
-            --window-pos 200 120 \
-            --window-size 800 400 \
-            --icon-size 100 \
-            --icon "REAL.app" 200 190 \
-            --hide-extension "REAL.app" \
-            --app-drop-link 600 185 \
-            "dist/REAL-1.0.0-arm64.dmg" \
-            "dist/mac-arm64/REAL.app"
 
       - name: Upload dist folder
         uses: actions/upload-artifact@v4
