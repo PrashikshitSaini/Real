@@ -9,8 +9,8 @@
         "build": "cd src && npm run build",
         "package": "electron-builder"
     },
-    "author": "",
-    "license": "ISC",
+    "author": "Prashikshit Saini",
+    "license": "MIT",
     "devDependencies": {
         "concurrently": "^8.2.2",
         "electron": "^29.1.0",
@@ -27,6 +27,22 @@
         "win": {
             "target": "nsis",
             "icon": "src/public/realLogo.ico"
+        },
+        "mac": {
+            "target": [
+                "dmg"
+            ],
+            "icon": "src/public/realLogo.icns",
+            "hardenedRuntime": true,
+            "gatekeeperAssess": false,
+            "entitlements": "build/entitlements.mac.plist",
+            "entitlementsInherit": "build/entitlements.mac.plist"
+        },
+        "linux": {
+            "target": [
+                "AppImage"
+            ],
+            "icon": "src/public/realLogo.png"
         }
     }
 }

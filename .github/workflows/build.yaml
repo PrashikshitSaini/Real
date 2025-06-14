@@ -33,7 +33,17 @@ jobs:
         run: cd src && npm install && npm run build && cd ..
 
       - name: Package Electron app
+        if: matrix.os != 'macos-latest'
         run: npm run package
+
+      - name: Package and Sign Electron app (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          npm run package
+          # Ad-hoc sign the app
+          codesign --force --deep --sign - "dist/mac/REAL.app"
+          # Create DMG
+          create-dmg "dist/mac/REAL.app" dist/
 
       - name: Upload dist folder
         uses: actions/upload-artifact@v4
