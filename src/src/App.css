@@ -511,3 +511,25 @@ body, html, .app.minimalist {
 .app.minimalist.dark-mode .entry-list-item:hover, .app.minimalist.dark-mode .entry-list-item:active {
   background: #222;
 }
+
+.draggable-bar {
+  width: 100vw;
+  height: 32px;
+  background: transparent;
+  color: transparent;
+  display: block;
+  user-select: none;
+  -webkit-app-region: drag;
+  border: none;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+}
+.app.minimalist.dark-mode .draggable-bar {
+  background: transparent;
+  color: transparent;
+  border: none;
+}

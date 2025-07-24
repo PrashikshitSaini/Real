@@ -355,6 +355,10 @@ function App() {
 
   return (
     <div className={`app minimalist ${isDarkMode ? 'dark-mode' : ''} ${isFullscreen ? 'fullscreen' : ''}`}>      
+      {/* Draggable Top Bar */}
+      <div className="draggable-bar">
+        <span style={{fontWeight:600, letterSpacing:'0.04em'}}>Real Journal</span>
+      </div>
       {showEntryPanel && (
         <div className="entry-panel">
           <div className="entry-panel-header">
@@ -467,7 +471,7 @@ function App() {
           )}
         </span>
         <span className="dot">•</span>
-        <span style={{ cursor: 'pointer' }} onClick={toggleDarkMode}>Dark Mode</span>
+        <span style={{ cursor: 'pointer' }} onClick={toggleDarkMode}>{isDarkMode ? 'White Mode' : 'Dark Mode'}</span>
         <span className="dot">•</span>
         <span style={{ cursor: 'pointer', position: 'relative' }}>
           <span onClick={handleChatClick}>Chat</span>
