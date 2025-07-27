@@ -353,6 +353,52 @@ function App() {
     }
   };
 
+  const exportAllEntries = () => {
+    if (!entries || entries.length === 0) {
+      alert('No entries to export.');
+      return;
+    }
+
+    // Format all entries for export
+    const exportContent = entries
+      .sort((a, b) => {
+        // Sort by date (newest first)
+        const dateA = a.filename.match(/entry_(\d{4})-(\d{2})-(\d{2})/);
+        const dateB = b.filename.match(/entry_(\d{4})-(\d{2})-(\d{2})/);
+        if (dateA && dateB) {
+          return new Date(dateB[1], dateB[2] - 1, dateB[3]) - new Date(dateA[1], dateA[2] - 1, dateA[3]);
+        }
+        return 0;
+      })
+      .map(entry => {
+        const contentOnly = entry.content.replace(/^---[\s\S]*?---\s*/, '');
+        const match = entry.filename.match(/entry_(\d{4})-(\d{2})-(\d{2})/);
+        let dateStr = entry.filename;
+        if (match) {
+          const d = new Date(`${match[1]}-${match[2]}-${match[3]}`);
+          dateStr = d.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          });
+        }
+        return `# ${dateStr}\n\n${contentOnly}\n\n---\n\n`;
+      })
+      .join('');
+
+    // Create and download the file
+    const blob = new Blob([exportContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `real-journal-entries-${new Date().toISOString().split('T')[0]}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className={`app minimalist ${isDarkMode ? 'dark-mode' : ''} ${isFullscreen ? 'fullscreen' : ''}`}>      
       {/* Draggable Top Bar */}
@@ -540,6 +586,11 @@ function App() {
             <FaRegImage />
           </button>
         </span>
+        {window.require && (
+          <span className="dot">•</span>
+        )}
+        <span className="dot">•</span>
+        <span style={{ cursor: 'pointer' }} onClick={exportAllEntries} title="Export all entries">📤 Export</span>
         {window.require && (
           <span className="dot">•</span>
         )}
