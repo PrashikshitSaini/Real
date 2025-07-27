@@ -112,7 +112,7 @@ function App() {
     justLoadedEntryRef.current = true;
     setTimeout(() => {
       if (editorRef.current) {
-        editorRef.current.innerText = contentOnly;
+        editorRef.current.innerHTML = contentOnly;
         editorRef.current.focus();
       }
     }, 0);
@@ -120,9 +120,17 @@ function App() {
 
   // On input, update content and typing time
   const handleInput = (e) => {
-    setContent(e.target.innerText);
+    setContent(e.target.innerHTML);
     justLoadedEntryRef.current = false;
     setEntryTypingSeconds((s) => s + 1); // Will be incremented every second
+  };
+
+  // Force content update (for image insertions)
+  const forceContentUpdate = () => {
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML);
+      justLoadedEntryRef.current = false;
+    }
   };
 
   // Track typing time (per entry)
@@ -200,6 +208,25 @@ function App() {
     setTimer(newTimer);
   };
 
+  const stopTimer = () => {
+    if (timer) {
+      clearInterval(timer);
+      setTimer(null);
+      setTimeLeft(null);
+      playBeep(); // Soft beep on timer stop
+    }
+  };
+
+  const handleTimerClick = () => {
+    if (timeLeft && timer) {
+      // Timer is running, stop it
+      stopTimer();
+    } else {
+      // Timer is not running, show dropdown
+      setShowTimerDropdown(v => !v);
+    }
+  };
+
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };
@@ -223,7 +250,7 @@ function App() {
     setEntryTypingSeconds(0);
     setCurrentPrompt(prompts[Math.floor(Math.random() * prompts.length)]);
     if (editorRef.current) {
-      editorRef.current.innerText = '';
+      editorRef.current.innerHTML = '';
       editorRef.current.focus();
     }
     justLoadedEntryRef.current = false;
@@ -291,21 +318,83 @@ function App() {
       const sel = window.getSelection();
       if (sel && sel.rangeCount > 0) {
         const range = sel.getRangeAt(0);
+        // Check if the selection is within the editor
+        if (editorRef.current.contains(range.commonAncestorContainer)) {
+          const img = document.createElement('img');
+          img.src = src;
+          img.style.maxWidth = '220px';
+          img.style.maxHeight = '160px';
+          img.style.display = 'inline-block';
+          img.style.margin = '0 4px';
+          img.style.verticalAlign = 'middle';
+          img.style.borderRadius = '6px';
+          img.style.boxShadow = '0 1px 4px rgba(0,0,0,0.08)';
+          
+          range.insertNode(img);
+          // Move caret after image
+          range.setStartAfter(img);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+          
+          // Force content update
+          setTimeout(forceContentUpdate, 0);
+        } else {
+          // If selection is not in editor, append at end
+          editorRef.current.focus();
+          const range = document.createRange();
+          range.selectNodeContents(editorRef.current);
+          range.collapse(false);
+          sel.removeAllRanges();
+          sel.addRange(range);
+          
+          const img = document.createElement('img');
+          img.src = src;
+          img.style.maxWidth = '220px';
+          img.style.maxHeight = '160px';
+          img.style.display = 'inline-block';
+          img.style.margin = '0 4px';
+          img.style.verticalAlign = 'middle';
+          img.style.borderRadius = '6px';
+          img.style.boxShadow = '0 1px 4px rgba(0,0,0,0.08)';
+          
+          range.insertNode(img);
+          range.setStartAfter(img);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+          
+          // Force content update
+          setTimeout(forceContentUpdate, 0);
+        }
+      } else {
+        // No selection, append at end
+        editorRef.current.focus();
+        const range = document.createRange();
+        range.selectNodeContents(editorRef.current);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        
         const img = document.createElement('img');
         img.src = src;
         img.style.maxWidth = '220px';
         img.style.maxHeight = '160px';
         img.style.display = 'inline-block';
         img.style.margin = '0 4px';
+        img.style.verticalAlign = 'middle';
+        img.style.borderRadius = '6px';
+        img.style.boxShadow = '0 1px 4px rgba(0,0,0,0.08)';
+        
         range.insertNode(img);
-        // Move caret after image
         range.setStartAfter(img);
         range.collapse(true);
         sel.removeAllRanges();
         sel.addRange(range);
-      } else {
-        // Fallback: append at end
-        editorRef.current.innerHTML += `<img src="${src}" style="max-width:220px;max-height:160px;display:inline-block;margin:0 4px;" />`;
+        
+        // Force content update
+        setTimeout(forceContentUpdate, 0);
       }
     }
   };
@@ -359,6 +448,9 @@ function App() {
       return;
     }
 
+    let imageCounter = 0;
+    const imageMap = new Map(); // Map to store image data
+
     // Format all entries for export
     const exportContent = entries
       .sort((a, b) => {
@@ -383,11 +475,33 @@ function App() {
             day: 'numeric' 
           });
         }
-        return `# ${dateStr}\n\n${contentOnly}\n\n---\n\n`;
+
+        // Process content to handle images
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = contentOnly;
+        const images = tempDiv.querySelectorAll('img');
+        let processedContent = contentOnly;
+
+        // Replace images with numbered references
+        images.forEach((img, index) => {
+          imageCounter++;
+          const imageRef = `[Image ${imageCounter}]`;
+          processedContent = processedContent.replace(img.outerHTML, imageRef);
+          
+          // Store image data for later download
+          const imageData = {
+            src: img.src,
+            filename: `image-${imageCounter}.png`,
+            reference: imageRef
+          };
+          imageMap.set(imageCounter, imageData);
+        });
+
+        return `# ${dateStr}\n\n${processedContent}\n\n---\n\n`;
       })
       .join('');
 
-    // Create and download the file
+    // Create the main markdown file
     const blob = new Blob([exportContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -397,6 +511,34 @@ function App() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    // Download images if any exist
+    if (imageMap.size > 0) {
+      // Download images individually
+      imageMap.forEach((imageData, counter) => {
+        // Convert data URL to blob and download
+        fetch(imageData.src)
+          .then(res => res.blob())
+          .then(blob => {
+            const imageUrl = URL.createObjectURL(blob);
+            const imgLink = document.createElement('a');
+            imgLink.href = imageUrl;
+            imgLink.download = imageData.filename;
+            document.body.appendChild(imgLink);
+            imgLink.click();
+            document.body.removeChild(imgLink);
+            URL.revokeObjectURL(imageUrl);
+          })
+          .catch(err => console.error('Error downloading image:', err));
+      });
+
+      // Show info about images
+      setTimeout(() => {
+        alert(`Export complete!\n\n📄 Main file: real-journal-entries-${new Date().toISOString().split('T')[0]}.md\n📸 Images: ${imageMap.size} image(s) downloaded separately\n\nImages are referenced as [Image 1], [Image 2], etc. in the text.`);
+      }, 100);
+    } else {
+      alert(`Export complete!\n\n📄 File: real-journal-entries-${new Date().toISOString().split('T')[0]}.md`);
+    }
   };
 
   return (
@@ -505,7 +647,7 @@ function App() {
         <button className="font-size-btn" onClick={() => handleFontSizeChange(2)}>+</button>
         <span className="dot">•</span>
         <span style={{ position: 'relative' }}>
-          <button className="timer-btn" onClick={() => setShowTimerDropdown(v => !v)}>
+          <button className="timer-btn" onClick={handleTimerClick}>
             {timeLeft ? `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}` : 'Timer'}
           </button>
           {showTimerDropdown && (
