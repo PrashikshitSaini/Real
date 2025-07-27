@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import beepSound from './beep.mp3';
 import { FaRegImage } from 'react-icons/fa';
+import JSZip from 'jszip';
 
 const prompts = [
   "What have you been up to today?",
@@ -501,43 +502,57 @@ function App() {
       })
       .join('');
 
-    // Create the main markdown file
-    const blob = new Blob([exportContent], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `real-journal-entries-${new Date().toISOString().split('T')[0]}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    // Download images if any exist
+    // Create ZIP file with JSZip
+    const zip = new JSZip();
+    
+    // Add the markdown file to the ZIP
+    const markdownFilename = `real-journal-entries-${new Date().toISOString().split('T')[0]}.md`;
+    zip.file(markdownFilename, exportContent);
+    
+    // Add images to the ZIP if any exist
     if (imageMap.size > 0) {
-      // Download images individually
+      const imagePromises = [];
+      
       imageMap.forEach((imageData, counter) => {
-        // Convert data URL to blob and download
-        fetch(imageData.src)
+        const promise = fetch(imageData.src)
           .then(res => res.blob())
           .then(blob => {
-            const imageUrl = URL.createObjectURL(blob);
-            const imgLink = document.createElement('a');
-            imgLink.href = imageUrl;
-            imgLink.download = imageData.filename;
-            document.body.appendChild(imgLink);
-            imgLink.click();
-            document.body.removeChild(imgLink);
-            URL.revokeObjectURL(imageUrl);
+            zip.file(imageData.filename, blob);
           })
-          .catch(err => console.error('Error downloading image:', err));
+          .catch(err => console.error('Error processing image:', err));
+        
+        imagePromises.push(promise);
       });
-
-      // Show info about images
-      setTimeout(() => {
-        alert(`Export complete!\n\n📄 Main file: real-journal-entries-${new Date().toISOString().split('T')[0]}.md\n📸 Images: ${imageMap.size} image(s) downloaded separately\n\nImages are referenced as [Image 1], [Image 2], etc. in the text.`);
-      }, 100);
+      
+      // Wait for all images to be processed, then generate and download ZIP
+      Promise.all(imagePromises).then(() => {
+        zip.generateAsync({ type: 'blob' }).then(content => {
+          const url = URL.createObjectURL(content);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `real-journal-export-${new Date().toISOString().split('T')[0]}.zip`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          
+          alert(`Export complete!\n\n📦 ZIP file: real-journal-export-${new Date().toISOString().split('T')[0]}.zip\n📄 Markdown file + ${imageMap.size} image(s)\n\nAll content is now in one convenient ZIP file.`);
+        });
+      });
     } else {
-      alert(`Export complete!\n\n📄 File: real-journal-entries-${new Date().toISOString().split('T')[0]}.md`);
+      // No images, just create ZIP with markdown
+      zip.generateAsync({ type: 'blob' }).then(content => {
+        const url = URL.createObjectURL(content);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `real-journal-export-${new Date().toISOString().split('T')[0]}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        alert(`Export complete!\n\n📦 ZIP file: real-journal-export-${new Date().toISOString().split('T')[0]}.zip\n📄 Markdown file only`);
+      });
     }
   };
 

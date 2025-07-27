@@ -44,5 +44,8 @@
             ],
             "icon": "src/public/realLogo.png"
         }
+    },
+    "dependencies": {
+        "jszip": "^3.10.1"
     }
 }
