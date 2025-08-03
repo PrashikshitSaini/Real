@@ -44,6 +44,7 @@ jobs:
           codesign --force --deep --sign - "dist/mac-arm64/REAL.app"
 
       - name: Calculate SHA256 hash
+        shell: bash
         run: |
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             find dist -name "*.exe" -exec sha256sum {} \; > hash.txt
