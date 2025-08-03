@@ -128,4 +128,4 @@ jobs:
             artifacts/dist-macos-latest/dist/*.dmg
           generate_release_notes: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
