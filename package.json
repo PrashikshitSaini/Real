@@ -19,6 +19,7 @@
     "build": {
         "appId": "com.real.journal",
         "productName": "REAL",
+        "publish": null,
         "files": [
             "main.js",
             "src/build/**/*",
