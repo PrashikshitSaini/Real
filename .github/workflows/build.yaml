@@ -43,11 +43,23 @@ jobs:
           # Ad-hoc sign the app
           codesign --force --deep --sign - "dist/mac-arm64/REAL.app"
 
+      - name: Calculate SHA256 hash
+        run: |
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            find dist -name "*.exe" -exec sha256sum {} \; > hash.txt
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            find dist -name "*.dmg" -exec shasum -a 256 {} \; > hash.txt
+          else
+            find dist -name "*.AppImage" -exec sha256sum {} \; > hash.txt
+          fi
+
       - name: Upload dist folder
         uses: actions/upload-artifact@v4
         with:
           name: dist-${{ matrix.os }}
-          path: dist/
+          path: |
+            dist/
+            hash.txt
 
   release:
     needs: build
@@ -59,13 +71,54 @@ jobs:
         with:
           path: artifacts
 
+      - name: Get release version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Update website with release info
+        run: |
+          # Extract hashes from artifacts
+          echo "Extracting hashes..."
+          WINDOWS_HASH=$(cat artifacts/dist-windows-latest/hash.txt | awk '{print $1}')
+          MACOS_HASH=$(cat artifacts/dist-macos-latest/hash.txt | awk '{print $1}')
+          LINUX_HASH=$(cat artifacts/dist-ubuntu-latest/hash.txt | awk '{print $1}')
+          
+          echo "Windows hash: $WINDOWS_HASH"
+          echo "macOS hash: $MACOS_HASH"
+          echo "Linux hash: $LINUX_HASH"
+          
+          # Update the website HTML
+          sed -i "s|https://github.com/PrashikshitSaini/Real/releases/download/v[0-9.]*/dist-windows-latest.zip|https://github.com/PrashikshitSaini/Real/releases/download/${{ steps.get_version.outputs.VERSION }}/REAL%20Setup%20${{ steps.get_version.outputs.VERSION }}.exe|g" docs/index.html
+          sed -i "s|https://github.com/PrashikshitSaini/Real/releases/download/v[0-9.]*/dist-ubuntu-latest.zip|https://github.com/PrashikshitSaini/Real/releases/download/${{ steps.get_version.outputs.VERSION }}/REAL-${{ steps.get_version.outputs.VERSION }}-x86_64.AppImage|g" docs/index.html
+          sed -i "s|https://github.com/PrashikshitSaini/Real/releases/download/v[0-9.]*/REAL-[0-9.]*-arm64.dmg|https://github.com/PrashikshitSaini/Real/releases/download/${{ steps.get_version.outputs.VERSION }}/REAL-${{ steps.get_version.outputs.VERSION }}-arm64.dmg|g" docs/index.html
+          
+          # Update Windows hash
+          sed -i "s|data-hash=\"[a-f0-9]*\"|data-hash=\"$WINDOWS_HASH\"|g" docs/index.html
+          sed -i "s|SHA256: <span class=\"hash-short\">[a-f0-9]*\\.\\.\\.</span>|SHA256: <span class=\"hash-short\">${WINDOWS_HASH:0:4}...${WINDOWS_HASH: -3}</span>|g" docs/index.html
+          
+          # Update macOS hash
+          sed -i "/macOS/,/data-hash=/s|data-hash=\"[a-f0-9]*\"|data-hash=\"$MACOS_HASH\"|g" docs/index.html
+          sed -i "/macOS/,/hash-short/s|SHA256: <span class=\"hash-short\">[a-f0-9]*\\.\\.\\.</span>|SHA256: <span class=\"hash-short\">${MACOS_HASH:0:4}...${MACOS_HASH: -3}</span>|g" docs/index.html
+          
+          # Update Linux hash
+          sed -i "/Linux/,/data-hash=/s|data-hash=\"[a-f0-9]*\"|data-hash=\"$LINUX_HASH\"|g" docs/index.html
+          sed -i "/Linux/,/hash-short/s|SHA256: <span class=\"hash-short\">[a-f0-9]*\\.\\.\\.</span>|SHA256: <span class=\"hash-short\">${LINUX_HASH:0:4}...${LINUX_HASH: -3}</span>|g" docs/index.html
+
+      - name: Commit and push website updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/index.html
+          git commit -m "Update website with release ${{ steps.get_version.outputs.VERSION }} links and hashes" || echo "No changes to commit"
+          git push origin main
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            artifacts/dist-ubuntu-latest/**/*
-            artifacts/dist-windows-latest/**/*
-            artifacts/dist-macos-latest/**/*
+            artifacts/dist-ubuntu-latest/dist/*.AppImage
+            artifacts/dist-windows-latest/dist/*.exe
+            artifacts/dist-macos-latest/dist/*.dmg
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

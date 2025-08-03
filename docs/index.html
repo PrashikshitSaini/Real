@@ -111,15 +111,18 @@
                         </svg>
                     </div>
                     <h3 class="text-lg font-medium mb-2">macOS</h3>
-                    <div class="text-sm text-gray-600 mb-3 text-center">
-                        For macOS, please build from source as we don't have an Apple Developer Account.
-                        <a href="https://github.com/PrashikshitSaini/Real#building-from-source" 
-                           class="text-blue-600 hover:text-blue-800 block mt-2">
-                            View Build Instructions ↗
-                        </a>
-                    </div>
-                    <button class="btn bg-gray-100 text-gray-500 w-full cursor-not-allowed">
-                        Build from Source
+                    <a href="https://github.com/PrashikshitSaini/Real/releases/download/v1.0.0/REAL-1.0.0-arm64.dmg" 
+                       class="btn btn-primary w-full flex items-center justify-center mb-3">
+                        <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Download
+                    </a>
+                    <button class="hash-btn text-xs text-gray-500 text-center mt-1 transition-colors duration-200" 
+                        data-hash="placeholder-macos-hash">
+                        SHA256: <span class="hash-short">place...hash</span>
                     </button>
                 </div>
 
