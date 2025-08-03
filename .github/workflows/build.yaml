@@ -95,10 +95,10 @@ jobs:
           echo "macOS hash: $MACOS_HASH"
           echo "Linux hash: $LINUX_HASH"
           
-          # Update the website HTML
-          sed -i "s|https://github.com/PrashikshitSaini/Real/releases/download/v[0-9.]*/dist-windows-latest.zip|https://github.com/PrashikshitSaini/Real/releases/download/${{ steps.get_version.outputs.VERSION }}/REAL%20Setup%20${{ steps.get_version.outputs.VERSION }}.exe|g" docs/index.html
-          sed -i "s|https://github.com/PrashikshitSaini/Real/releases/download/v[0-9.]*/dist-ubuntu-latest.zip|https://github.com/PrashikshitSaini/Real/releases/download/${{ steps.get_version.outputs.VERSION }}/REAL-${{ steps.get_version.outputs.VERSION }}-x86_64.AppImage|g" docs/index.html
-          sed -i "s|https://github.com/PrashikshitSaini/Real/releases/download/v[0-9.]*/REAL-[0-9.]*-arm64.dmg|https://github.com/PrashikshitSaini/Real/releases/download/${{ steps.get_version.outputs.VERSION }}/REAL-${{ steps.get_version.outputs.VERSION }}-arm64.dmg|g" docs/index.html
+          # Update the website HTML with simpler patterns
+          sed -i "s|dist-windows-latest.zip|REAL%20Setup%20${{ steps.get_version.outputs.VERSION }}.exe|g" docs/index.html
+          sed -i "s|dist-ubuntu-latest.zip|REAL-${{ steps.get_version.outputs.VERSION }}-x86_64.AppImage|g" docs/index.html
+          sed -i "s|REAL-[0-9.]*-arm64.dmg|REAL-${{ steps.get_version.outputs.VERSION }}-arm64.dmg|g" docs/index.html
           
           # Update Windows hash
           sed -i "s|data-hash=\"[a-f0-9]*\"|data-hash=\"$WINDOWS_HASH\"|g" docs/index.html
