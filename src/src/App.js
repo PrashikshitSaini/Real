@@ -191,6 +191,7 @@ function App() {
   };
 
   const startTimer = (minutes) => {
+    console.log('Starting timer for', minutes, 'minutes');
     setShowTimerDropdown(false);
     if (timer) clearInterval(timer);
     setTimeLeft(minutes * 60);
@@ -219,11 +220,14 @@ function App() {
   };
 
   const handleTimerClick = () => {
+    console.log('Timer clicked!', { timeLeft, timer, showTimerDropdown });
     if (timeLeft && timer) {
       // Timer is running, stop it
+      console.log('Stopping timer');
       stopTimer();
     } else {
       // Timer is not running, show dropdown
+      console.log('Toggling dropdown');
       setShowTimerDropdown(v => !v);
     }
   };
@@ -661,15 +665,49 @@ function App() {
         <span>{fontSize}px</span>
         <button className="font-size-btn" onClick={() => handleFontSizeChange(2)}>+</button>
         <span className="dot">•</span>
-        <span style={{ position: 'relative' }}>
-          <button className="timer-btn" onClick={handleTimerClick}>
-            {timeLeft ? `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}` : 'Timer'}
+        <span style={{ position: 'relative', zIndex: 200 }}>
+          <button 
+            className="timer-btn" 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Timer button clicked!');
+              handleTimerClick();
+            }}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: 'inherit', 
+              cursor: 'pointer',
+              padding: '4px 8px',
+              fontSize: '1em',
+              pointerEvents: 'auto',
+              userSelect: 'none',
+              border: '1px solid transparent'
+            }}
+          >
+            {timeLeft ? `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}` : `Timer (${showTimerDropdown ? 'ON' : 'OFF'})`}
           </button>
           {showTimerDropdown && (
-            <div className="timer-dropdown">
-              <button onClick={() => startTimer(5)}>5:00</button>
-              <button onClick={() => startTimer(10)}>10:00</button>
-              <button onClick={() => startTimer(15)}>15:00</button>
+            <div className="timer-dropdown" style={{ 
+              display: 'flex', 
+              position: 'absolute', 
+              bottom: '100%', 
+              left: '50%', 
+              transform: 'translateX(-50%)', 
+              background: '#fff', 
+              border: '1px solid #ddd', 
+              borderRadius: '4px', 
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)', 
+              zIndex: 9999, 
+              flexDirection: 'column', 
+              minWidth: '70px', 
+              marginBottom: '8px',
+              padding: '4px'
+            }}>
+              <button onClick={() => startTimer(5)} style={{ padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left' }}>5:00</button>
+              <button onClick={() => startTimer(10)} style={{ padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left' }}>10:00</button>
+              <button onClick={() => startTimer(15)} style={{ padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left' }}>15:00</button>
             </div>
           )}
         </span>
